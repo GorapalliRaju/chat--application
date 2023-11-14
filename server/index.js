@@ -1,5 +1,7 @@
 const http = require('http');
 const express = require('express');
+const bodyparser=require('body-parser');
+const mongoose=require('mongoose');
 const socketio = require('socket.io');
 const cors = require('cors');
 
@@ -14,9 +16,52 @@ const io = socketio(server, {
     origin: '*'
   }
 });
-
+app.use(express.urlencoded({extended:true}));
+app.use(bodyparser.urlencoded({extended:true}));
+app.use(express.static("public"));
+app.use(express.json());
 app.use(cors());
 app.use(router);
+
+mongoose.connect("mongodb://0.0.0.0:27017/chat",{useNewUrlParser:true}).then(()=>console.log("connected mongodb successfully"));
+const User = mongoose.model('User', {
+  username: String,
+  password: String,
+});
+app.post('/register', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already exists', success: false });
+    }
+
+    const newUser = new User({ username, password });
+    await newUser.save();
+
+    res.status(201).json({ message: 'Registration successful', success: true });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Error registering user', success: false });
+  }
+});
+app.post("/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const existingUser = await User.findOne({ username });
+
+    if (existingUser && existingUser.password === password) {
+      res.status(200).json({ success: true, message: 'Login successful' });
+    } else {
+      res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ success: false, error: 'Error during login' });
+  }
+});
 
 io.on('connect', (socket) => {
   socket.on('join', ({ name, room }, callback) => {
