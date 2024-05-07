@@ -1,7 +1,7 @@
 const http = require('http');
 const express = require('express');
-const bodyparser=require('body-parser');
-const mongoose=require('mongoose');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const socketio = require('socket.io');
 const cors = require('cors');
 
@@ -16,18 +16,21 @@ const io = socketio(server, {
     origin: '*'
   }
 });
-app.use(express.urlencoded({extended:true}));
-app.use(bodyparser.urlencoded({extended:true}));
+
+app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 app.use(router);
 
-mongoose.connect("mongodb://0.0.0.0:27017/chat",{useNewUrlParser:true}).then(()=>console.log("connected mongodb successfully"));
+mongoose.connect("mongodb://0.0.0.0:27017/chat", { useNewUrlParser: true }).then(() => console.log("connected mongodb successfully"));
+
 const User = mongoose.model('User', {
   username: String,
   password: String,
 });
+
 app.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -47,6 +50,7 @@ app.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Error registering user', success: false });
   }
 });
+
 app.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -82,6 +86,11 @@ io.on('connect', (socket) => {
   socket.on('sendMessage', (message, callback) => {
     const user = getUser(socket.id);
 
+    if (!user) {
+      console.error('User not found');
+      return callback('User not found');
+    }
+
     io.to(user.room).emit('message', { user: user.name, text: message });
 
     callback();
@@ -94,7 +103,7 @@ io.on('connect', (socket) => {
       io.to(user.room).emit('message', { user: 'Admin', text: `${user.name} has left.` });
       io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
     }
-  })
+  });
 });
 
 server.listen(process.env.PORT || 5000, () => console.log(`Server has started.`));
