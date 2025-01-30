@@ -5,7 +5,7 @@ import './chat.css';
 import InfoBar from '../infoBar/infoBar';
 import Input from '../input/input.js';
 import Messages from '../messages/messages.js';
-const socket = io('http://localhost:5000'); // Move it outside the component
+const socket = io('https://chat-application-2-kziu.onrender.com'); // Move it outside the component
 
 function Chat() {
   const [name, setName] = useState('');

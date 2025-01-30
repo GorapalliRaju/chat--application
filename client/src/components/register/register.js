@@ -13,7 +13,7 @@ const Register = () => {
   const handleRegister = async () => {
     try {
       if (username && password && confirmPassword && password === confirmPassword) {
-        const response = await fetch('http://localhost:5000/register', {
+        const response = await fetch('https://chat-application-2-kziu.onrender.com/register', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
