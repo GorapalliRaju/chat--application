@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require('http');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -24,7 +25,7 @@ app.use(express.json());
 app.use(cors());
 app.use(router);
 
-mongoose.connect("mongodb://0.0.0.0:27017/chat", { useNewUrlParser: true }).then(() => console.log("connected mongodb successfully"));
+mongoose.connect(process.env.MONGO_URL, { useNewUrlParser: true }).then(() => console.log("connected mongodb successfully"));
 
 const User = mongoose.model('User', {
   username: String,
